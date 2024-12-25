@@ -31,7 +31,7 @@ A comprehensive, cross-platform installer for the Metasploit Framework, supporti
 ### 🚀 Installation Steps
 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/metasploit-installer.git
+git clone https://github.com/Hrushikeshjetti/metasploit-installer.git
 cd metasploit-installer
 ```
 
