@@ -1,0 +1,68 @@
+name: Metasploit Installer CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  lint:
+    name: Lint and Static Analysis
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+    
+    - name: Install ShellCheck
+      run: sudo apt-get install -y shellcheck
+    
+    - name: Lint Shell Script
+      run: |
+        shellcheck scripts/*.sh
+        echo "Shell script lint check passed"
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+    
+    - name: Security Scan
+      run: |
+        # Basic security checks
+        grep -r "sudo" scripts/
+        grep -r "rm -rf" scripts/
+        echo "Basic security scan completed"
+
+  test:
+    name: Cross-Platform Compatibility Test
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        shell: [bash]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+    
+    - name: Test Script Syntax
+      shell: ${{ matrix.shell }}
+      run: |
+        bash -n scripts/install_metasploit.sh
+        echo "Script syntax check passed on ${{ matrix.os }}"
+
+  notification:
+    name: Workflow Notification
+    needs: [lint, security-scan, test]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Workflow Status Notification
+      if: failure()
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        text: ❌ Metasploit Installer CI failed
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
